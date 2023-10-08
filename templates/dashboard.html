@@ -25,6 +25,30 @@
             text-align: center;
         }
 
+        .user-info {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .referral-box {
+            background-color: #ffdb4d;
+            border: 1px solid #ffcc00;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .points-box {
+            background-color: #66ff66;
+            border: 1px solid #33cc33;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
         .nav-links {
             display: flex;
             justify-content: center;
@@ -48,14 +72,29 @@
 <body>
     <div class="container">
         <h1>Dashboard</h1>
+
+        <!-- User information box -->
+        <div class="user-info">
+            <div class="referral-box">
+                <p>Your Referral Code:</p>
+                <p style="color: #333;">{{ UserRefCode }}</p>
+            </div>
+
+            <div class="points-box">
+                <p>Your Points:</p>
+                <p style="color: #333;">{{ UserPoints }}</p>
+            </div>
+        </div>
+
         <div class="nav-links">
             <h1>The posts</h1>
         </div>
+
         <iframe
-  src="https://30days.streamlit.app/?embed=true"
-  height="450"
-  style="width:100%;border:none;"
-></iframe>
+            src="https://30days.streamlit.app/?embed=true"
+            height="450"
+            style="width:100%;border:none;"
+        ></iframe>
     </div>
     <a href="{{ url_for('logout') }}">Logout</a>
 </body>
