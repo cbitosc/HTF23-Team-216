@@ -1,7 +1,7 @@
+import os
 import pyrebase
 from pymongo import MongoClient
 from flask import Flask, session, request, url_for, redirect, render_template
-import os
 from werkzeug.utils import secure_filename
 from var import *
 
@@ -26,10 +26,10 @@ print(admins)
 print(admin_mails)
 
 # Set the upload folder
-UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+FOLDER = 'uploads'
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -123,22 +123,23 @@ def dashboard():
             return redirect(url_for('login'))
     return redirect(url_for('login'))
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
-
+STATIC_FOLDER = os.path.join(app.root_path, 'static')
 # Create the upload folder if it doesn't exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-app = Flask(__name__)
-
-UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Ensure the upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
+    user_token = session.get('user_token')
+    if user_token:
+        if auth.get_account_info(user_token)['users'][0]['email'] in admin_mails:
+            return render_template('upload.html')
     if request.method == 'POST':
         # Check if any files were uploaded
         if 'image_files' not in request.files:
@@ -159,7 +160,7 @@ def upload():
             filename = secure_filename(image_file.filename)
 
             # Save the uploaded file to the 'uploads' folder with a new name
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
             image_file.save(file_path)
             file_paths.append(file_path)
 
@@ -167,16 +168,30 @@ def upload():
         # and perform any further processing as needed.
 
         # For example, you can return the list of file paths as a response
-        return f"Uploaded {len(file_paths)} files: {', '.join(file_paths)}"
+        return redirect(url_for("gallery"))
 
-    return render_template('upload.html')
+    
 
 @app.route('/gallery')
 def gallery():
     # Get a list of all uploaded image files in the 'uploads' folder
-    uploaded_files = [os.path.join(app.config['UPLOAD_FOLDER'], filename) for filename in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(filename)]
+    #uploaded_files = [os.path.join(app.config['UPLOAD_FOLDER'], filename) for filename in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(filename)]
+    #print(uploaded_files)
+    user_token = session.get('user_token')
+    if user_token:
+        try:
+            # Use the user_token to fetch user-specific data from Firebase Realtime Database
+            user_email = auth.get_account_info(user_token)['users'][0]['email']
+            k = [filename for filename in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(filename)]
+            print(k)
+            img = [os.path.join('static', f'{FOLDER}/{filename}') for filename in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(filename)]
+            return render_template('gallery.html', img=img, user_email=user_email)
+        except Exception as e:
+            print("Error fetching user data:", e)
+            return redirect(url_for('login'))
+    return redirect(url_for('login'))
+    
 
-    return render_template('gallery.html', uploaded_files=uploaded_files)
 
 
 
