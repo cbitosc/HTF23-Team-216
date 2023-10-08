@@ -5,6 +5,13 @@
     <title>Upload Images</title>
 </head>
 <body>
+    <div class="menu-bar">
+        <a href="{{ url_for('') }}">Notice Board</a>
+        <a href="{{ url_for('vote') }}">Vote</a>
+        <a href="{{ url_for('Courses') }}">Courses</a>
+        <a href="{{ url_for('Roadmaps') }}">Roadmaps</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
     <h1>Upload Images</h1>
     <form action="/upload" method="POST" enctype="multipart/form-data">
         <input type="file" name="image_files" multiple required>

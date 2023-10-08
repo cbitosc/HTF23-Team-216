@@ -3,16 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <title>Image Gallery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-item {
+            margin: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <img src="static/uploads/Screenshot_2023-10-03_000228.png" alt="hack-img" />
     <h1>Image Gallery</h1>
     <div class="image-gallery">
         {% for image in img %}
-        <p>{{ image }}</p>
-            <div class="image-item">
-                <img src="{{ image }}" alt="Image">
-            </div>
+        <div class="image-item">
+            <img src="{{ image }}" alt="Image">
+        </div>
         {% endfor %}
     </div>
     <br>
