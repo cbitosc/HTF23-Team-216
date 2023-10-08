@@ -64,14 +64,26 @@ def signup():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        
+        referral_code = request.form['referral']
+
         try:
             user = auth.create_user_with_email_and_password(email, password)
+            user_data = {
+                'email': email,
+                'referral_code': email[:5]+str(random.randint(1000,9999)),
+                'points': 0
+            }
+
+            # Insert the user data into MongoDB
+            db["users"].insert_one(user_data)
+            db["users"].update_one({"referral_code": referral_code}, {"$inc": {"points": 10}})
             return redirect(url_for('login'))
+
         except Exception as e:
             error_message = str(e)
             return render_template('signup.html', error_message=error_message)
     return render_template('signup.html')
+
 
 # Login page
 @app.route('/login', methods=['GET', 'POST'])
