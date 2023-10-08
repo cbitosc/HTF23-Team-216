@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Gallery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Image Gallery</h1>
+        <div class="image-container">
+            {% for image in images %}
+                <img src="{{ image.path }}" alt="{{ image.filename }}">
+            {% endfor %}
+        </div>
+        <a href="/upload" class="btn btn-primary">Upload More Images</a>
+    </div>
+</body>
+</html>
