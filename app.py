@@ -1,13 +1,14 @@
 import pyrebase
 from pymongo import MongoClient
 from flask import Flask, session, request, url_for, redirect, render_template
-from var import *
 import os
+from werkzeug.utils import secure_filename
+from var import *
 
 app = Flask(__name__)
 app.secret_key = "kahsdkfvcoljwbflbwgi3ur1234jhmbags"
 
-client = MongoClient(mongostr,serverSelectionTimeoutMS=60000)
+client = MongoClient(mongostr, serverSelectionTimeoutMS=60000)
 
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
@@ -24,20 +25,20 @@ for records in Admin:
 print(admins)
 print(admin_mails)
 
+# Set the upload folder
+UPLOAD_FOLDER = './uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
-    user_token = session.get('user_token')
-    if user_token:
-        try:
-            user_email = auth.get_account_info(user_token)['users'][0]['email']
-            return render_template('dashboard.html',user_email=user_email)
-        except Exception as e:
-            return redirect(url_for('login'))
-    else:
-        return redirect(url_for('login'))
+    return redirect('/login')
 
-@app.route('/ticket')
+app.route('/ticket')
 def ticket():
     return render_template('ticket.html')
         
@@ -112,6 +113,15 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 # Create the upload folder if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+app = Flask(__name__)
+
+UPLOAD_FOLDER = './uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -130,8 +140,11 @@ def upload():
             if image_file.filename == '':
                 return "One or more selected files are empty"
 
-            # Save the uploaded file to the 'uploads' folder
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file.filename)
+            # Generate a secure filename to avoid naming conflicts
+            filename = secure_filename(image_file.filename)
+
+            # Save the uploaded file to the 'uploads' folder with a new name
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             image_file.save(file_path)
             file_paths.append(file_path)
 
@@ -143,10 +156,14 @@ def upload():
 
     return render_template('upload.html')
 
+@app.route('/gallery')
+def gallery():
+    # Get a list of all uploaded image files in the 'uploads' folder
+    uploaded_files = [os.path.join(app.config['UPLOAD_FOLDER'], filename) for filename in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(filename)]
 
-@app.route('/display')
-def display():
-    return render_template('display.html')
+    return render_template('gallery.html', uploaded_files=uploaded_files)
+
+
 
 @app.route('/logout')
 def logout():

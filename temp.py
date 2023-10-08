@@ -1,53 +1,53 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_pymongo import PyMongo
-import os
+import os, var
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import  FileStorage
 
 app = Flask(__name__)
 
+UPLOAD_FOLDER = './uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 # Configuration for Flask-PyMongo
-app.config["MONGO_URI"] = "mongodb://localhost:27017/image_gallery"
-mongo = PyMongo(app)
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-@app.route('/')
-def index():
-    return redirect(url_for('upload'))
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Create the upload folder if it doesn't exist
-os.makedirs("uploads", exist_ok=True)
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
+@app.route('/', methods=['GET', 'POST'])
+def upload_file():
     if request.method == 'POST':
-        # Check if any files were uploaded
-        if 'image_files' not in request.files:
-            return "No files selected for upload"
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('download_file', name=filename))
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
+    '''
 
-        # Get the list of uploaded files
-        image_files = request.files.getlist('image_files')
+from flask import send_from_directory
 
-        for image_file in image_files:
-            # Check if the file is empty
-            if image_file.filename == '':
-                return "One or more selected files are empty"
-
-            # Save the uploaded file to the 'uploads' folder
-            file_path = os.path.join("uploads", image_file.filename)
-            image_file.save(file_path)
-
-            # Store image metadata in MongoDB
-            mongo.db.images.insert_one({"filename": image_file.filename, "path": file_path})
-
-        # Redirect to the image gallery page
-        return redirect(url_for('gallery'))
-
-    return render_template('upload.html')
-
-@app.route('/gallery')
-def gallery():
-    # Get image metadata from MongoDB
-    images = list(mongo.db.images.find())
-
-    return render_template('gallery.html', images=images)
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
 if __name__ == '__main__':
     app.run(debug=True)

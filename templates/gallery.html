@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Image Gallery</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Image Gallery</h1>
-        <div class="image-container">
-            {% for image in images %}
-                <img src="{{ image.path }}" alt="{{ image.filename }}">
-            {% endfor %}
-        </div>
-        <a href="/upload" class="btn btn-primary">Upload More Images</a>
+    <h1>Image Gallery</h1>
+    <div class="image-gallery">
+        {% for file_path in uploaded_files %}
+            <div class="image-item">
+                <img src="{{ file_path }}" alt="Image">
+            </div>
+        {% endfor %}
     </div>
+    <br>
+    <a href="/upload">Upload More Images</a>
 </body>
 </html>
