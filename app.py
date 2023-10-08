@@ -114,7 +114,10 @@ def dashboard():
         try:
             # Use the user_token to fetch user-specific data from Firebase Realtime Database
             user_email = auth.get_account_info(user_token)['users'][0]['email']
-            return render_template('dashboard.html', user_email=user_email)
+            ud= db["users"].find_one({"email": user_email})
+            UserRefCode=ud.get("referral_code", "Not there")
+            UserPoints=ud.get("points", 0)
+            return render_template('dashboard.html', user_email=user_email, UserRefCode=UserRefCode, UserPoints=UserPoints)
         except Exception as e:
             print("Error fetching user data:", e)
             return redirect(url_for('login'))
