@@ -5,15 +5,18 @@
     <title>Image Gallery</title>
 </head>
 <body>
+    <img src="static/uploads/Screenshot_2023-10-03_000228.png" alt="hack-img" />
     <h1>Image Gallery</h1>
     <div class="image-gallery">
-        {% for file_path in uploaded_files %}
+        {% for image in img %}
+        <p>{{ image }}</p>
             <div class="image-item">
-                <img src="{{ file_path }}" alt="Image">
+                <img src="{{ image }}" alt="Image">
             </div>
         {% endfor %}
     </div>
     <br>
     <a href="/upload">Upload More Images</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
 </body>
 </html>
